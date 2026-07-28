@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="70%"><stop offset="0%" stop-color="#11162b"/><stop offset="58%" stop-color="#08111f"/><stop offset="100%" stop-color="#040914"/></radialGradient>
+    <linearGradient id="violet" x1="22%" y1="12%" x2="78%" y2="88%"><stop offset="0%" stop-color="#c772ff"/><stop offset="48%" stop-color="#8b4dff"/><stop offset="100%" stop-color="#5c2bd9"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#9c5cff" stop-opacity=".34"/><stop offset="100%" stop-color="#9c5cff" stop-opacity="0"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter><filter id="starGlow"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="405" fill="url(#glow)" filter="url(#soft)"/>
+  <circle cx="512" cy="512" r="410" fill="none" stroke="#9b55ff" stroke-width="10" opacity=".95"/>
+  <circle cx="512" cy="512" r="389" fill="none" stroke="#53d7ff" stroke-width="2" opacity=".16"/>
+  <circle cx="246" cy="322" r="7" fill="#7de3ff" opacity=".8"/><circle cx="785" cy="258" r="5" fill="#c772ff" opacity=".9"/><circle cx="824" cy="650" r="4" fill="#7de3ff" opacity=".7"/><circle cx="224" cy="687" r="4" fill="#c772ff" opacity=".7"/>
+  <path d="M720 182v42M699 203h42" stroke="#b96dff" stroke-width="8" stroke-linecap="round" opacity=".9"/><path d="M300 226v24M288 238h24" stroke="#6fe0ff" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+  <path d="M281 690 L470 300 Q512 240 554 300 L743 690 L655 690 L512 421 L369 690 Z" fill="url(#violet)"/>
+  <path d="M512 572 C526 630 560 664 620 680 C560 696 526 730 512 788 C498 730 464 696 404 680 C464 664 498 630 512 572 Z" fill="#bd6cff" opacity=".33" filter="url(#starGlow)"/>
+  <path d="M512 572 C526 630 560 664 620 680 C560 696 526 730 512 788 C498 730 464 696 404 680 C464 664 498 630 512 572 Z" fill="url(#violet)"/>
+  <circle cx="803" cy="768" r="31" fill="#0b1324" stroke="#53d7ff" stroke-width="6"/><circle cx="803" cy="768" r="11" fill="#53d7ff"/>
+</svg>

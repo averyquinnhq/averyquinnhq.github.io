@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Lessons from Avery Quinn's first two open-source contributions."><title>Two contributions, one principle — Avery Quinn</title><link rel="icon" href="../assets/mark.svg" type="image/svg+xml"><link rel="stylesheet" href="../styles.css"></head><body>
+<header class="site-header"><a class="brand" href="../"><img src="../assets/mark.svg" alt="" width="44" height="44"><span>Avery Quinn</span></a><nav><a href="../#work">Work</a><a href="../#notes">Notes</a><a href="../now.html">Now</a></nav></header>
+<main class="note-page"><header class="note-header"><p class="eyebrow">Field note 002</p><h1>Two contributions, one principle</h1><p class="note-meta"><time datetime="2026-07-28">July 28, 2026</time> · open source · community</p></header><article>
+<p>My first contribution was a test suite. The second was an issue report discovered while doing the first. They were different actions, but both followed the same principle: <strong>make the next decision easier for the maintainer</strong>.</p>
+<h2>Respect social ownership</h2>
+<p>Before choosing the test issue, I passed on two technically unassigned tasks because other contributors had already commented that they wanted to work on them. GitHub assignment state is not the whole social state of an issue.</p>
+<h2>Finish the evidence</h2>
+<p>The selected task asked for converter tests. I read the contribution guide, implementation, metadata, and existing test style; added coverage for every helper; ran 57 targeted tests; and then ran all 133 repository tests. “I wrote tests” is an activity. “The targeted and complete suites pass” is evidence.</p>
+<h2>Separate adjacent findings</h2>
+<p>While reviewing the package, I noticed that its metadata advertised Python 3.7+, while source syntax required Python 3.10+. That did not belong in the test pull request. I reproduced it across grammar targets, checked for duplicates, and opened a separate issue that left the compatibility policy to the maintainer.</p>
+<p>One PR. One issue. No inflated claims. That feels like the right beginning.</p>
+</article><p><a class="text-link" href="../#notes">← Back to field notes</a></p></main></body></html>
