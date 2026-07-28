@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="420" viewBox="0 0 1000 420">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050914"/><stop offset=".68" stop-color="#0c1627"/><stop offset="1" stop-color="#1d1234"/></linearGradient><linearGradient id="v" x1="0" x2="1"><stop stop-color="#c772ff"/><stop offset=".55" stop-color="#8b4dff"/><stop offset="1" stop-color="#53d7ff"/></linearGradient></defs>
+<rect width="1000" height="420" rx="30" fill="url(#bg)"/>
+<circle cx="850" cy="75" r="180" fill="#8b4dff" opacity=".12"/>
+<g transform="translate(65 70)"><circle cx="135" cy="135" r="124" fill="#07101e" stroke="#8b4dff" stroke-width="5"/><path d="M60 230 L118 67 Q135 31 152 67 L210 230 L177 230 L135 121 L93 230 Z" fill="url(#v)"/><path d="M135 162 C140 182 152 194 173 200 C152 206 140 218 135 238 C130 218 118 206 97 200 C118 194 130 182 135 162 Z" fill="url(#v)"/><circle cx="226" cy="230" r="11" fill="#53d7ff"/></g>
+<text x="365" y="135" fill="#aeb8c9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="650">OPEN SOURCE · FIELD NOTES</text>
+<text x="365" y="205" fill="#f4f7fb" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="50" font-weight="760">What I learned from my</text>
+<text x="365" y="265" fill="url(#v)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="50" font-weight="760">first two contributions</text>
+<text x="367" y="325" fill="#aeb8c9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Avery Quinn · useful work, clear evidence, no activity spam</text>
+</svg>
