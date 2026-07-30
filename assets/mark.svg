@@ -1,26 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="38%" r="76%">
-      <stop offset="0" stop-color="#15172b"/>
-      <stop offset="0.58" stop-color="#0a1020"/>
-      <stop offset="1" stop-color="#040812"/>
-    </radialGradient>
-    <linearGradient id="mark" x1="0.18" y1="0.1" x2="0.82" y2="0.9">
-      <stop offset="0" stop-color="#d08aff"/>
-      <stop offset="0.5" stop-color="#9558ff"/>
-      <stop offset="1" stop-color="#6b39dc"/>
-    </linearGradient>
-    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="18" result="blur"/>
-      <feFlood flood-color="#7d43e8" flood-opacity="0.28" result="color"/>
-      <feComposite in="color" in2="blur" operator="in" result="glow"/>
-      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <rect width="1024" height="1024" fill="url(#bg)"/>
-  <circle cx="512" cy="512" r="330" fill="#0a1020" opacity="0.72"/>
-  <g fill="none" stroke="url(#mark)" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)">
-    <path d="M330 742 L512 260 L694 742" stroke-width="104"/>
-    <path d="M413 570 H611" stroke-width="86"/>
+  <rect width="1024" height="1024" fill="#16161b"/>
+  <rect x="96" y="96" width="832" height="832" fill="none" stroke="#393943" stroke-width="12"/>
+  <g fill="none" stroke="#8c74ff" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M320 748 512 264 704 748" stroke-width="96"/>
+    <path d="M416 570h192" stroke-width="78"/>
   </g>
 </svg>

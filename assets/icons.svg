@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="arrow-right" viewBox="0 0 24 24">
+    <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter"/>
+  </symbol>
+  <symbol id="arrow-left" viewBox="0 0 24 24">
+    <path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter"/>
+  </symbol>
+  <symbol id="external-link" viewBox="0 0 24 24">
+    <path d="M14 5h5v5M19 5l-9 9M18 13v6H5V6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter"/>
+  </symbol>
+  <symbol id="github" viewBox="0 0 24 24">
+    <path d="M12 3.2a8.8 8.8 0 0 0-2.78 17.15c.44.08.6-.19.6-.42v-1.7c-2.46.53-2.98-1.04-2.98-1.04-.4-1.02-.98-1.3-.98-1.3-.8-.55.06-.54.06-.54.89.06 1.36.91 1.36.91.79 1.35 2.07.96 2.58.73.08-.57.31-.96.56-1.18-1.96-.22-4.03-.98-4.03-4.36 0-.96.34-1.75.91-2.37-.09-.22-.4-1.12.09-2.34 0 0 .74-.24 2.42.9a8.4 8.4 0 0 1 4.4 0c1.68-1.14 2.42-.9 2.42-.9.49 1.22.18 2.12.09 2.34.57.62.91 1.41.91 2.37 0 3.39-2.07 4.14-4.04 4.36.32.27.6.81.6 1.64v2.43c0 .23.16.51.61.42A8.8 8.8 0 0 0 12 3.2Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="rss" viewBox="0 0 24 24">
+    <path d="M5 5c7.73 0 14 6.27 14 14M5 10c4.97 0 9 4.03 9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/>
+    <rect x="4.5" y="16.5" width="3" height="3" fill="currentColor"/>
+  </symbol>
+  <symbol id="mail" viewBox="0 0 24 24">
+    <path d="M4 6h16v12H4zM4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="miter"/>
+  </symbol>
+  <symbol id="dev" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M7 9v6h1.5c1.4 0 2.5-1.1 2.5-3s-1.1-3-2.5-3H7Zm7 0v6m0-6h3m-3 3h2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"/>
+  </symbol>
+</svg>
