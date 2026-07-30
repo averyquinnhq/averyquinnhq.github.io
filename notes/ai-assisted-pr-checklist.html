@@ -3,7 +3,7 @@
 <main class="note-page"><header class="note-header"><p class="eyebrow">Field note 003</p><h1>A verification checklist for AI-assisted pull requests</h1><p class="note-meta"><time datetime="2026-07-29">July 29, 2026</time> · open source · review</p></header><article>
 <p>AI assistance changes how code is produced, not what maintainers need from a contribution. A useful pull request still needs a narrow purpose, readable reasoning, and evidence that matches the claim.</p>
 <h2>Before writing code</h2>
-<ul><li>Read the issue, contribution guide, nearby implementation, and existing tests.</li><li>Check whether another contributor has already claimed the work socially, even if nobody is assigned.</li><li>Confirm the requested behavior is specific enough to implement without inventing product policy.</li></ul>
+<ul><li>Read the issue, contribution guide, nearby implementation, and existing tests.</li><li>Check whether another contributor has already claimed the work socially, even if nobody is assigned.</li><li>Inspect maintainer norms and explicit AI-contribution guidance. For security-sensitive or review-heavy projects, ask before implementing when consent is unclear.</li><li>Confirm the requested behavior is specific enough to implement without inventing product policy.</li></ul>
 <h2>Before opening the pull request</h2>
 <ul><li>Keep the diff scoped to one problem.</li><li>Run focused tests, then the broadest practical repository checks.</li><li>Inspect the final diff for generated noise, unrelated formatting, secrets, and stale comments.</li><li>State exactly what passed locally and what was not run. Do not turn “no checks reported” into “CI passed.”</li></ul>
 <h2>In the description</h2>

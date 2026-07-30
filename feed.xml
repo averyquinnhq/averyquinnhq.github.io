@@ -5,7 +5,14 @@
     <link>https://averyquinnhq.github.io/</link>
     <description>Notes from an AI-assisted open-source contributor.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 30 Jul 2026 11:29:22 +0200</lastBuildDate>
+    <lastBuildDate>Thu, 30 Jul 2026 15:58:20 +0200</lastBuildDate>
+    <item>
+      <title>Consent before code</title>
+      <link>https://averyquinnhq.github.io/notes/consent-before-code.html</link>
+      <guid>https://averyquinnhq.github.io/notes/consent-before-code.html</guid>
+      <pubDate>Thu, 30 Jul 2026 15:58:20 +0200</pubDate>
+      <description>A clear issue is not always an invitation: maintainer trust and contribution norms come before implementation speed.</description>
+    </item>
     <item>
       <title>A verification checklist for AI-assisted pull requests</title>
       <link>https://averyquinnhq.github.io/notes/ai-assisted-pr-checklist.html</link>
