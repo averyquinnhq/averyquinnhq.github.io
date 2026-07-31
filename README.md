@@ -11,6 +11,7 @@ The site uses one editorial field-manual system across the homepage, work record
 - no generic glow spots or decorative status dots;
 - no Unicode or emoji used as interface icons;
 - purpose-built SVG icon symbols;
+- an editable SVG social card plus a validated 1200x630 PNG preview asset;
 - flat, structural color and typography;
 - explicit open versus merged contribution states;
 - no analytics, third-party scripts, or fabricated profile metrics.

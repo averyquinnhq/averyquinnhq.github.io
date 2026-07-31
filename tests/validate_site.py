@@ -7,7 +7,9 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+import struct
 import xml.etree.ElementTree as ET
+import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_ORIGIN = "https://averyquinnhq.github.io"
@@ -27,6 +29,12 @@ class Page:
     descriptions: int = 0
     viewports: int = 0
     mains: int = 0
+    h1s: int = 0
+    skip_links: list[str] = field(default_factory=list)
+    og_images: list[str] = field(default_factory=list)
+    og_image_types: list[str] = field(default_factory=list)
+    og_image_widths: list[str] = field(default_factory=list)
+    og_image_heights: list[str] = field(default_factory=list)
 
 
 class PageParser(HTMLParser):
@@ -46,12 +54,35 @@ class PageParser(HTMLParser):
             self.page.in_title = True
         elif tag == "main":
             self.page.mains += 1
+            if values.get("id") != "main":
+                self.page.errors.append("main element must use id=main")
+            if values.get("tabindex") != "-1":
+                self.page.errors.append("main#main must use tabindex=-1 for skip-link focus")
+        elif tag == "h1":
+            self.page.h1s += 1
+        elif tag == "a" and "skip-link" in (values.get("class") or "").split():
+            href = values.get("href")
+            if href:
+                self.page.skip_links.append(href)
         elif tag == "meta":
             name = (values.get("name") or "").lower()
-            if name == "description" and values.get("content"):
+            property_name = (values.get("property") or "").lower()
+            content = values.get("content")
+            if name == "description" and content:
                 self.page.descriptions += 1
-            elif name == "viewport" and values.get("content"):
+            elif name == "viewport" and content:
                 self.page.viewports += 1
+            elif property_name == "og:image" and content:
+                self.page.og_images.append(content)
+            elif property_name == "og:image:type" and content:
+                self.page.og_image_types.append(content)
+            elif property_name == "og:image:width" and content:
+                self.page.og_image_widths.append(content)
+            elif property_name == "og:image:height" and content:
+                self.page.og_image_heights.append(content)
+
+        if "style" in values:
+            self.page.errors.append(f"inline style attribute on <{tag}>")
 
         element_id = values.get("id")
         if element_id:
@@ -99,6 +130,20 @@ def parse_pages() -> dict[Path, Page]:
             page.errors.append(f"expected one viewport meta, found {page.viewports}")
         if page.mains != 1:
             page.errors.append(f"expected one main element, found {page.mains}")
+        if page.h1s != 1:
+            page.errors.append(f"expected one h1 element, found {page.h1s}")
+        if page.skip_links != ["#main"]:
+            page.errors.append(f"expected one skip link to #main, found {page.skip_links!r}")
+        if relative != Path("404.html"):
+            expected_image = f"{PUBLIC_ORIGIN}/assets/social-card.png"
+            if page.og_images != [expected_image]:
+                page.errors.append(f"expected one Open Graph image {expected_image!r}, found {page.og_images!r}")
+            if page.og_image_types != ["image/png"]:
+                page.errors.append(f"expected og:image:type image/png, found {page.og_image_types!r}")
+            if page.og_image_widths != ["1200"]:
+                page.errors.append(f"expected og:image:width 1200, found {page.og_image_widths!r}")
+            if page.og_image_heights != ["630"]:
+                page.errors.append(f"expected og:image:height 630, found {page.og_image_heights!r}")
         pages[relative] = page
     return pages
 
@@ -109,6 +154,116 @@ def svg_ids(path: Path) -> set[str]:
     except ET.ParseError as exc:
         raise AssertionError(f"{path.relative_to(ROOT)}: invalid SVG: {exc}") from exc
     return {value for element in root.iter() if (value := element.attrib.get("id"))}
+
+
+def validate_social_png(path: Path) -> tuple[int, int]:
+    data = path.read_bytes()
+    label = path.relative_to(ROOT)
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise AssertionError(f"{label}: invalid PNG signature")
+
+    position = 8
+    header: bytes | None = None
+    compressed = bytearray()
+    saw_end = False
+    while position < len(data):
+        if position + 12 > len(data):
+            raise AssertionError(f"{label}: truncated PNG chunk header")
+        length = struct.unpack(">I", data[position : position + 4])[0]
+        chunk_type = data[position + 4 : position + 8]
+        chunk_end = position + 12 + length
+        if chunk_end > len(data):
+            raise AssertionError(f"{label}: truncated {chunk_type.decode('ascii', 'replace')} chunk")
+        payload = data[position + 8 : position + 8 + length]
+        stored_crc = struct.unpack(">I", data[position + 8 + length : chunk_end])[0]
+        actual_crc = zlib.crc32(payload, zlib.crc32(chunk_type)) & 0xFFFFFFFF
+        if stored_crc != actual_crc:
+            raise AssertionError(f"{label}: invalid {chunk_type.decode('ascii', 'replace')} chunk CRC")
+        if chunk_type == b"IHDR":
+            if header is not None or length != 13:
+                raise AssertionError(f"{label}: invalid IHDR chunk")
+            header = payload
+        elif chunk_type == b"IDAT":
+            compressed.extend(payload)
+        elif chunk_type == b"IEND":
+            if length:
+                raise AssertionError(f"{label}: invalid IEND chunk")
+            saw_end = True
+            position = chunk_end
+            break
+        position = chunk_end
+
+    if header is None or not compressed or not saw_end or position != len(data):
+        raise AssertionError(f"{label}: incomplete PNG structure")
+
+    width, height, bit_depth, color_type, compression, filter_method, interlace = struct.unpack(">IIBBBBB", header)
+    if (bit_depth, color_type, compression, filter_method, interlace) != (8, 2, 0, 0, 0):
+        raise AssertionError(f"{label}: expected non-interlaced 8-bit RGB PNG")
+    try:
+        scanlines = zlib.decompress(compressed)
+    except zlib.error as exc:
+        raise AssertionError(f"{label}: invalid compressed image data: {exc}") from exc
+
+    bytes_per_pixel = 3
+    row_bytes = width * bytes_per_pixel
+    expected_size = height * (row_bytes + 1)
+    if len(scanlines) != expected_size:
+        raise AssertionError(f"{label}: expected {expected_size} decoded bytes, found {len(scanlines)}")
+
+    def paeth(left: int, above: int, upper_left: int) -> int:
+        estimate = left + above - upper_left
+        left_distance = abs(estimate - left)
+        above_distance = abs(estimate - above)
+        upper_left_distance = abs(estimate - upper_left)
+        if left_distance <= above_distance and left_distance <= upper_left_distance:
+            return left
+        if above_distance <= upper_left_distance:
+            return above
+        return upper_left
+
+    rows: list[bytes] = []
+    previous = bytearray(row_bytes)
+    for row_number in range(height):
+        start = row_number * (row_bytes + 1)
+        filter_type = scanlines[start]
+        row = bytearray(scanlines[start + 1 : start + 1 + row_bytes])
+        if filter_type > 4:
+            raise AssertionError(f"{label}: invalid filter {filter_type} on row {row_number}")
+        for index in range(row_bytes):
+            left = row[index - bytes_per_pixel] if index >= bytes_per_pixel else 0
+            above = previous[index]
+            upper_left = previous[index - bytes_per_pixel] if index >= bytes_per_pixel else 0
+            if filter_type == 1:
+                row[index] = (row[index] + left) & 0xFF
+            elif filter_type == 2:
+                row[index] = (row[index] + above) & 0xFF
+            elif filter_type == 3:
+                row[index] = (row[index] + ((left + above) // 2)) & 0xFF
+            elif filter_type == 4:
+                row[index] = (row[index] + paeth(left, above, upper_left)) & 0xFF
+        rows.append(bytes(row))
+        previous = row
+
+    def pixel(x: int, y: int) -> tuple[int, int, int]:
+        offset = x * bytes_per_pixel
+        red, green, blue = rows[y][offset : offset + bytes_per_pixel]
+        return red, green, blue
+
+    if pixel(0, 0) != (22, 22, 27) or pixel(width - 1, height - 1) != (241, 237, 228):
+        raise AssertionError(f"{label}: raster does not match the expected dark-left / light-right composition")
+    required_colors = {(22, 22, 27), (241, 237, 228), (140, 116, 255)}
+    present_colors: set[tuple[int, int, int]] = set()
+    for row in rows:
+        for index in range(0, row_bytes, bytes_per_pixel):
+            color = row[index], row[index + 1], row[index + 2]
+            if color in required_colors:
+                present_colors.add(color)
+        if present_colors == required_colors:
+            break
+    missing_colors = required_colors - present_colors
+    if missing_colors:
+        raise AssertionError(f"{label}: missing brand colors {sorted(missing_colors)!r}")
+    return width, height
 
 
 def resolve_local_reference(source: Path, value: str) -> tuple[Path, str] | None:
@@ -221,6 +376,21 @@ def validate_design_system() -> list[str]:
     icon_ids = svg_ids(ROOT / "assets/icons.svg")
     required_icons = {"arrow-right", "arrow-left", "external-link", "github", "rss", "mail", "dev"}
     errors.extend(f"assets/icons.svg: missing symbol {icon}" for icon in sorted(required_icons - icon_ids))
+
+    social_svg = ROOT / "assets/social-card.svg"
+    social_png = ROOT / "assets/social-card.png"
+    if not social_svg.is_file():
+        errors.append("assets/social-card.svg: missing editable social-card source")
+    if not social_png.is_file():
+        errors.append("assets/social-card.png: missing raster social-card asset")
+    else:
+        try:
+            dimensions = validate_social_png(social_png)
+        except AssertionError as exc:
+            errors.append(str(exc))
+        else:
+            if dimensions != (1200, 630):
+                errors.append(f"assets/social-card.png: expected 1200x630, found {dimensions[0]}x{dimensions[1]}")
     return errors
 
 
