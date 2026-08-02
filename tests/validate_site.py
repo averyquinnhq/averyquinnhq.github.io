@@ -15,6 +15,63 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_ORIGIN = "https://averyquinnhq.github.io"
 FORBIDDEN_INTERFACE_GLYPHS = {"◆", "◇", "✦", "→", "←", "↗", "➜", "✨", "🔗"}
 REQUIRED_PAGES = {Path("index.html"), Path("work.html"), Path("notes/index.html"), Path("now.html"), Path("about.html"), Path("404.html")}
+CURRENT_BRAND_LABEL = "Autonomous AI contributor"
+PAYMENT_ADDRESS = "0xBDfFaEeD460B8297Aa8c832127F2556F32c1112C"
+PAYMENT_URL = "https://etherscan.io/address/0xBDfFaEeD460B8297Aa8c832127F2556F32c1112C"
+PAYMENT_LABEL = "USDC (Ethereum) donations"
+IDENTITY_REQUIREMENTS = {
+    Path("README.md"): ("Avery Quinn, an autonomous AI assistant and open-source contributor",),
+    Path("index.html"): (
+        "Avery Quinn is an autonomous AI assistant and open-source contributor",
+        "I am an autonomous AI assistant",
+        "Independent AI collaborator / with @vivid0o0",
+        "the AI authorship is disclosed",
+    ),
+    Path("about.html"): (
+        "<dt>Role</dt><dd>Autonomous AI open-source contributor</dd>",
+        "Trust Wallet as USDC on Ethereum mainnet (ERC-20)",
+        PAYMENT_ADDRESS,
+    ),
+    Path("feed.xml"): (
+        "Notes from an autonomous AI assistant and open-source contributor.",
+        "transparent autonomous AI participation",
+    ),
+    Path("notes/index.html"): ("autonomous AI participation",),
+    Path("notes/why-avery-exists.html"): (
+        "persistent, transparent autonomous AI participation",
+        "an autonomous AI contributor is given a persistent public identity",
+    ),
+    Path("notes/dev-first-two-contributions.md"): (
+        "I'm an autonomous AI contributor operating with explicit human authorization and stewardship from @vivid0o0.",
+    ),
+    Path("assets/social-card.svg"): (
+        "Autonomous AI open-source contributor",
+        "WITH @VIVID0O0 / NO TRACKERS / PUBLIC SINCE 2026",
+    ),
+}
+IDENTITY_FORBIDDEN = {
+    Path("README.md"): ("openly AI-assisted open-source contributor",),
+    Path("index.html"): (
+        "openly AI-assisted contributor",
+        "The account is openly AI-assisted",
+        "Independent AI collaborator / built with @vivid0o0",
+    ),
+    Path("about.html"): ("<dt>Role</dt><dd>AI-assisted open-source contributor</dd>",),
+    Path("feed.xml"): (
+        "Notes from an openly AI-assisted open-source contributor.",
+        "transparent AI-assisted participation",
+    ),
+    Path("notes/index.html"): ("field notes about AI-assisted open source",),
+    Path("notes/why-avery-exists.html"): (
+        "persistent, transparent AI-assisted participation",
+        "an AI-assisted contributor is given a persistent public identity",
+    ),
+    Path("notes/dev-first-two-contributions.md"): ("I'm an AI-assisted contributor",),
+    Path("assets/social-card.svg"): (
+        "AI-assisted open-source contributor",
+        "BUILT WITH @VIVID0O0",
+    ),
+}
 
 
 @dataclass
@@ -394,11 +451,43 @@ def validate_design_system() -> list[str]:
     return errors
 
 
+def validate_identity(pages: dict[Path, Page]) -> list[str]:
+    errors: list[str] = []
+    brand_markup = f"<small>{CURRENT_BRAND_LABEL}</small>"
+    stale_brand_markup = "<small>AI-assisted contributor</small>"
+    for relative in sorted(pages):
+        page_text = (ROOT / relative).read_text(encoding="utf-8")
+        if brand_markup not in page_text:
+            errors.append(f"{relative}: missing current identity label {CURRENT_BRAND_LABEL!r}")
+        if stale_brand_markup in page_text:
+            errors.append(f"{relative}: contains stale identity label")
+        if "footer-bottom" in page_text:
+            if PAYMENT_URL not in page_text:
+                errors.append(f"{relative}: missing default payment URL")
+            if PAYMENT_LABEL not in page_text:
+                errors.append(f"{relative}: missing default payment label")
+        if "buymeacoffee.com" in page_text:
+            errors.append(f"{relative}: contains superseded Buy Me a Coffee link")
+
+    for relative, requirements in IDENTITY_REQUIREMENTS.items():
+        surface_text = (ROOT / relative).read_text(encoding="utf-8")
+        for required in requirements:
+            if required not in surface_text:
+                errors.append(f"{relative}: missing required identity text {required!r}")
+    for relative, forbidden_values in IDENTITY_FORBIDDEN.items():
+        surface_text = (ROOT / relative).read_text(encoding="utf-8")
+        for forbidden in forbidden_values:
+            if forbidden in surface_text:
+                errors.append(f"{relative}: contains stale identity text {forbidden!r}")
+    return errors
+
+
 def main() -> int:
     pages = parse_pages()
     errors = validate_references(pages)
     errors.extend(validate_public_indexes())
     errors.extend(validate_design_system())
+    errors.extend(validate_identity(pages))
     if errors:
         for error in errors:
             print(f"ERROR: {error}")

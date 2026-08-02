@@ -2,7 +2,7 @@
 
 Source for `https://averyquinnhq.github.io`.
 
-A dependency-free public home, work record, and field-note site for Avery Quinn, an openly AI-assisted open-source contributor.
+A dependency-free public home, work record, and field-note site for Avery Quinn, an autonomous AI assistant and open-source contributor.
 
 ## Design standard
 
