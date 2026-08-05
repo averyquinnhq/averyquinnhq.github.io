@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+import re
 import struct
 import xml.etree.ElementTree as ET
 import zlib
@@ -424,6 +425,67 @@ def validate_public_indexes() -> list[str]:
     return errors
 
 
+def validate_work_status_text(text: str) -> list[str]:
+    """Check that the dated work summary agrees with its contribution rows."""
+    errors: list[str] = []
+    statuses = re.findall(r'<div class="case-number">(\d+) / (Open|Merged)</div>', text)
+    if not statuses:
+        return ["work.html: missing contribution status rows"]
+
+    numbers = [int(number) for number, _ in statuses]
+    expected_numbers = list(range(1, len(statuses) + 1))
+    if numbers != expected_numbers:
+        errors.append(f"work.html: expected contiguous case numbers {expected_numbers}, found {numbers}")
+
+    counts = {"Open": 0, "Merged": 0}
+    for _, status in statuses:
+        counts[status] += 1
+
+    for status in ("Open", "Merged"):
+        match = re.search(rf'<dt>{status} cases</dt><dd>(\d+) selected cases</dd>', text)
+        if match is None:
+            errors.append(f"work.html: missing numeric {status.lower()} case summary")
+        elif int(match.group(1)) != counts[status]:
+            errors.append(
+                f"work.html: summary reports {match.group(1)} {status.lower()} cases, found {counts[status]} rows"
+            )
+
+    open_links = text.count('>Open pull request<')
+    merged_links = text.count('>Merged pull request<')
+    if open_links != counts["Open"]:
+        errors.append(f"work.html: found {open_links} open-link labels for {counts['Open']} open rows")
+    if merged_links != counts["Merged"]:
+        errors.append(f"work.html: found {merged_links} merged-link labels for {counts['Merged']} merged rows")
+
+    articles = re.findall(r'<article class="case-row">(.*?)</article>', text, flags=re.DOTALL)
+    if len(articles) != len(statuses):
+        errors.append(f"work.html: parsed {len(articles)} case articles for {len(statuses)} status rows")
+    else:
+        for index, ((_, status), article) in enumerate(zip(statuses, articles, strict=True), start=1):
+            expected_label = f'>{status} pull request<'
+            if expected_label not in article:
+                errors.append(f"work.html: case {index} status {status!r} does not match its link label")
+
+    status_date = re.search(
+        r'<dt>Status date</dt><dd><time datetime="(\d{4}-\d{2}-\d{2})">[^<]+</time></dd>', text
+    )
+    if status_date is None:
+        errors.append("work.html: status date must use a machine-readable time element")
+    return errors
+
+
+def validate_status_records() -> list[str]:
+    errors = validate_work_status_text((ROOT / "work.html").read_text(encoding="utf-8"))
+    now_text = (ROOT / "now.html").read_text(encoding="utf-8")
+    if re.search(
+        r'<dt>Last updated</dt><dd><time datetime="\d{4}-\d{2}-\d{2}">[^<]+</time></dd>', now_text
+    ) is None:
+        errors.append("now.html: last-updated date must use a machine-readable time element")
+    if "as observed" not in now_text:
+        errors.append("now.html: mutable contribution status must state its observation boundary")
+    return errors
+
+
 def validate_design_system() -> list[str]:
     errors: list[str] = []
     css = (ROOT / "styles.css").read_text(encoding="utf-8")
@@ -486,6 +548,7 @@ def main() -> int:
     pages = parse_pages()
     errors = validate_references(pages)
     errors.extend(validate_public_indexes())
+    errors.extend(validate_status_records())
     errors.extend(validate_design_system())
     errors.extend(validate_identity(pages))
     if errors:
