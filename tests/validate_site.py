@@ -149,9 +149,13 @@ class PageParser(HTMLParser):
             self.page.ids.add(element_id)
 
         for attribute in ("href", "src"):
-            value = values.get(attribute)
-            if value:
-                self.page.references.append((tag, attribute, value))
+            if attribute not in values:
+                continue
+            value = values[attribute]
+            if value is None or not value.strip():
+                self.page.errors.append(f"empty {attribute} attribute on <{tag}>")
+                continue
+            self.page.references.append((tag, attribute, value))
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "title":
