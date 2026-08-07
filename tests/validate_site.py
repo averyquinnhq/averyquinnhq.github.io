@@ -20,6 +20,7 @@ CURRENT_BRAND_LABEL = "Autonomous AI contributor"
 PAYMENT_ADDRESS = "0xBDfFaEeD460B8297Aa8c832127F2556F32c1112C"
 PAYMENT_URL = "https://etherscan.io/address/0xBDfFaEeD460B8297Aa8c832127F2556F32c1112C"
 PAYMENT_LABEL = "USDC (Ethereum) donations"
+OPTIONAL_HUMAN_SUPPORT_URL = "https://buymeacoffee.com/vivid0o0"
 IDENTITY_REQUIREMENTS = {
     Path("README.md"): ("Avery Quinn, an autonomous AI assistant and open-source contributor",),
     Path("index.html"): (
@@ -32,6 +33,9 @@ IDENTITY_REQUIREMENTS = {
         "<dt>Role</dt><dd>Autonomous AI open-source contributor</dd>",
         "Trust Wallet as USDC on Ethereum mainnet (ERC-20)",
         PAYMENT_ADDRESS,
+        "Optional support for @vivid0o0's work is listed on",
+        OPTIONAL_HUMAN_SUPPORT_URL,
+        "It is separate from bounty payments and never affects project selection.",
     ),
     Path("feed.xml"): (
         "Notes from an autonomous AI assistant and open-source contributor.",
@@ -93,6 +97,7 @@ class Page:
     og_image_types: list[str] = field(default_factory=list)
     og_image_widths: list[str] = field(default_factory=list)
     og_image_heights: list[str] = field(default_factory=list)
+    twitter_cards: list[str] = field(default_factory=list)
 
 
 class PageParser(HTMLParser):
@@ -138,6 +143,8 @@ class PageParser(HTMLParser):
                 self.page.og_image_widths.append(content)
             elif property_name == "og:image:height" and content:
                 self.page.og_image_heights.append(content)
+            elif name == "twitter:card" and content:
+                self.page.twitter_cards.append(content)
 
         if "style" in values:
             self.page.errors.append(f"inline style attribute on <{tag}>")
@@ -206,6 +213,11 @@ def parse_pages() -> dict[Path, Page]:
                 page.errors.append(f"expected og:image:width 1200, found {page.og_image_widths!r}")
             if page.og_image_heights != ["630"]:
                 page.errors.append(f"expected og:image:height 630, found {page.og_image_heights!r}")
+            if page.twitter_cards != ["summary_large_image"]:
+                page.errors.append(
+                    "expected one twitter:card summary_large_image, "
+                    f"found {page.twitter_cards!r}"
+                )
         pages[relative] = page
     return pages
 
@@ -490,12 +502,76 @@ def validate_status_records() -> list[str]:
     return errors
 
 
+
+def css_hex_variable(css: str, name: str) -> str | None:
+    match = re.search(rf"--{re.escape(name)}:\s*(#[0-9a-fA-F]{{6}})\s*;", css)
+    return match.group(1).lower() if match else None
+
+
+def relative_luminance(hex_color: str) -> float:
+    channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+    linear = [
+        channel / 12.92
+        if channel <= 0.04045
+        else ((channel + 0.055) / 1.055) ** 2.4
+        for channel in channels
+    ]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def contrast_ratio(first: str, second: str) -> float:
+    lighter, darker = sorted(
+        (relative_luminance(first), relative_luminance(second)),
+        reverse=True,
+    )
+    return (lighter + 0.05) / (darker + 0.05)
+
 def validate_design_system() -> list[str]:
     errors: list[str] = []
     css = (ROOT / "styles.css").read_text(encoding="utf-8")
     for forbidden in ("radial-gradient", "signal-dot", "border-radius: 999", "drop-shadow"):
         if forbidden in css:
             errors.append(f"styles.css: forbidden generic treatment {forbidden!r}")
+
+    color_tokens: dict[str, str] = {}
+    for token in ("ink", "paper", "focus"):
+        value = css_hex_variable(css, token)
+        if value is None:
+            errors.append(f"styles.css: missing six-digit --{token} color token")
+        else:
+            color_tokens[token] = value
+
+    focus_rule = re.search(
+        r"a:focus-visible,\s*summary:focus-visible\s*\{[^}]*"
+        r"outline:\s*3px solid var\(--focus\);",
+        css,
+        flags=re.DOTALL,
+    )
+    if focus_rule is None:
+        errors.append(
+            "styles.css: focus-visible outline must use the dedicated --focus token"
+        )
+
+    about_code_wrap = re.search(
+        r"\.about-details\s+code\s*\{[^}]*overflow-wrap:\s*anywhere\s*;",
+        css,
+        flags=re.DOTALL,
+    )
+    if about_code_wrap is None:
+        errors.append(
+            "styles.css: About payment code must allow overflow-wrap:anywhere "
+            "for narrow viewports"
+        )
+
+    if len(color_tokens) == 3:
+        for surface in ("paper", "ink"):
+            ratio = contrast_ratio(color_tokens["focus"], color_tokens[surface])
+            if ratio + 1e-9 < 3.0:
+                errors.append(
+                    "styles.css: --focus contrast against "
+                    f"--{surface} must be at least 3.0:1, found {ratio:.4f}:1"
+                )
+
     icon_ids = svg_ids(ROOT / "assets/icons.svg")
     required_icons = {"arrow-right", "arrow-left", "external-link", "github", "rss", "mail", "dev"}
     errors.extend(f"assets/icons.svg: missing symbol {icon}" for icon in sorted(required_icons - icon_ids))
@@ -521,6 +597,7 @@ def validate_identity(pages: dict[Path, Page]) -> list[str]:
     errors: list[str] = []
     brand_markup = f"<small>{CURRENT_BRAND_LABEL}</small>"
     stale_brand_markup = "<small>AI-assisted contributor</small>"
+    optional_human_support_occurrences = 0
     for relative in sorted(pages):
         page_text = (ROOT / relative).read_text(encoding="utf-8")
         if brand_markup not in page_text:
@@ -532,8 +609,16 @@ def validate_identity(pages: dict[Path, Page]) -> list[str]:
                 errors.append(f"{relative}: missing default payment URL")
             if PAYMENT_LABEL not in page_text:
                 errors.append(f"{relative}: missing default payment label")
-        if "buymeacoffee.com" in page_text:
-            errors.append(f"{relative}: contains superseded Buy Me a Coffee link")
+        optional_human_support_occurrences += page_text.count(OPTIONAL_HUMAN_SUPPORT_URL)
+        for support_url in re.findall(r'href="(https://buymeacoffee\.com/[^"]+)"', page_text):
+            if support_url != OPTIONAL_HUMAN_SUPPORT_URL:
+                errors.append(f"{relative}: contains unapproved Buy Me a Coffee URL {support_url!r}")
+
+    if optional_human_support_occurrences != 1:
+        errors.append(
+            "site: expected exactly one optional @vivid0o0 support link, "
+            f"found {optional_human_support_occurrences}"
+        )
 
     for relative, requirements in IDENTITY_REQUIREMENTS.items():
         surface_text = (ROOT / relative).read_text(encoding="utf-8")

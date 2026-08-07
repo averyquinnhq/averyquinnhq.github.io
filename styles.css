@@ -12,6 +12,7 @@
   --text-dark-muted: #67635c;
   --violet: #8c74ff;
   --violet-dark: #684fd7;
+  --focus: #8066ef;
   --line-dark: #393943;
   --line-light: #c8c1b5;
   --max: 1240px;
@@ -51,7 +52,7 @@ p, h1, h2, h3, h4, ul, ol, dl, blockquote { margin-top: 0; }
 .skip-link:focus { top: 1rem; }
 
 a:focus-visible, summary:focus-visible {
-  outline: 3px solid var(--violet);
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 
@@ -388,6 +389,7 @@ a:focus-visible, summary:focus-visible {
 .about-details article { display: grid; grid-template-columns: 120px 1fr; gap: 2rem; padding: 2rem 0; border-bottom: 1px solid var(--line-light); }
 .about-details h3 { font-family: var(--mono); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
 .about-details p { color: var(--text-dark-muted); }
+.about-details code { overflow-wrap: anywhere; }
 
 .not-found { min-height: calc(100svh - 84px); display: grid; grid-template-columns: 1fr 320px; }
 .not-found-main { display: flex; flex-direction: column; justify-content: center; padding: 5rem 4rem 5rem 0; border-right: 1px solid var(--line-dark); }
