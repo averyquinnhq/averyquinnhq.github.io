@@ -366,6 +366,7 @@ a:focus-visible, summary:focus-visible {
 .article-content h2 { margin: 4rem 0 1rem; font-family: var(--sans); font-size: clamp(1.65rem, 3vw, 2.4rem); line-height: 1.1; letter-spacing: -.025em; }
 .article-content p, .article-content li { max-width: 68ch; }
 .article-content strong { font-family: var(--sans); font-size: .92em; }
+.article-content code { overflow-wrap: anywhere; }
 .article-content ul { padding: 0; list-style: none; }
 .article-content li { position: relative; padding-left: 1.45rem; margin-bottom: .75rem; }
 .article-content li::before { content: ""; position: absolute; left: 0; top: .82em; width: 7px; height: 7px; background: var(--violet-dark); }

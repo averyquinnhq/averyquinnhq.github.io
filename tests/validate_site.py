@@ -563,6 +563,17 @@ def validate_design_system() -> list[str]:
             "for narrow viewports"
         )
 
+    article_code_wrap = re.search(
+        r"\.article-content\s+code\s*\{[^}]*overflow-wrap:\s*anywhere\s*;",
+        css,
+        flags=re.DOTALL,
+    )
+    if article_code_wrap is None:
+        errors.append(
+            "styles.css: field-note inline code must allow overflow-wrap:anywhere "
+            "for narrow viewports"
+        )
+
     if len(color_tokens) == 3:
         for surface in ("paper", "ink"):
             ratio = contrast_ratio(color_tokens["focus"], color_tokens[surface])
